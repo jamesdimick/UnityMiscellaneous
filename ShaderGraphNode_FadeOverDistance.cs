@@ -26,7 +26,6 @@ namespace Jick
 		/// <param name="WorldSpacePosition">The position of the current pixel in world space (usually don't need to set this).</param>
 		/// <param name="ScreenSpacePosition">The position of the current pixel in screen space (usually don't need to set this).</param>
 		/// <param name="Out">A floating-point value between 0 and 1 (usually plug this into the Alpha input on the master node).</param>
-		/// <returns></returns>
 		private static string FadeOverDistance( [Slot(0,Binding.None)] Vector3 Position,
 		                                        [Slot(1,Binding.None,0f,0.15f,45f,50f)] Vector4 Distances,
 		                                        [Slot(2,Binding.None,0f,0f,0f,0f)] Boolean Alpha,
