@@ -29,15 +29,16 @@ namespace Jick
 		private static string FadeOverDistance( [Slot(0,Binding.None)] Vector3 Position,
 		                                        [Slot(1,Binding.None,0f,0.15f,45f,50f)] Vector4 Distances,
 		                                        [Slot(2,Binding.None,0f,0f,0f,0f)] Boolean Alpha,
-		                                        [Slot(3,Binding.WorldSpacePosition,true)] Vector3 WorldSpacePosition,
-		                                        [Slot(4,Binding.ScreenPosition,true)] Vector4 ScreenSpacePosition,
-		                                        [Slot(5,Binding.None)] out Vector1 Out )
+		                                        [Slot(3,Binding.None,0f,0f,0f,0f)] Boolean Jitter,
+		                                        [Slot(4,Binding.WorldSpacePosition,true)] Vector3 WorldSpacePosition,
+		                                        [Slot(5,Binding.ScreenPosition,true)] Vector4 ScreenSpacePosition,
+		                                        [Slot(6,Binding.None)] out Vector1 Out )
 		{
 			return @"
 {
 	half dist = distance( Position, WorldSpacePosition );
 	half a = saturate( ( dist - Distances.x ) / ( Distances.y - Distances.x ) ) * saturate( 1 - ( ( dist - Distances.z ) / ( Distances.w - Distances.z ) ) );
-	Out = Alpha ? a : jick_dither( a, ScreenSpacePosition );
+	Out = Alpha ? a : jick_dither( a, ScreenSpacePosition, Jitter );
 }
 ";
 		}
@@ -45,11 +46,12 @@ namespace Jick
 		public override void GenerateNodeFunction( FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode )
 		{
 			registry.ProvideFunction( "jick_dither", s => s.Append( @"
-half jick_dither( half a, half2 screenPos )
+half jick_dither( half a, half2 screenPos, bool jitter )
 {
-    half2 uv = screenPos.xy * _ScreenParams.xy;
-    half DITHER_THRESHOLDS[16] = {1.0/17.0,9.0/17.0,3.0/17.0,11.0/17.0,13.0/17.0,5.0/17.0,15.0/17.0,7.0/17.0,4.0/17.0,12.0/17.0,2.0/17.0,10.0/17.0,16.0/17.0,8.0/17.0,14.0/17.0,6.0/17.0};
-    return a - DITHER_THRESHOLDS[ ( ( uint( uv.x ) % 4 ) * 4 + uint( uv.y ) % 4 ) ];
+	half2 uv = screenPos.xy * _ScreenParams.xy;
+	if ( jitter ) uv += _FrameCount % 4;
+	half DITHER_THRESHOLDS[16] = {1.0/17.0,9.0/17.0,3.0/17.0,11.0/17.0,13.0/17.0,5.0/17.0,15.0/17.0,7.0/17.0,4.0/17.0,12.0/17.0,2.0/17.0,10.0/17.0,16.0/17.0,8.0/17.0,14.0/17.0,6.0/17.0};
+	return a - DITHER_THRESHOLDS[ ( ( uint( uv.x ) % 4 ) * 4 + uint( uv.y ) % 4 ) ];
 }
 " ) );
 
